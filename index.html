@@ -484,7 +484,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     <div class="full">
       <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
         <button class="primary" id="runBtn">Запустить эксперимент</button>
-        <span class="seg" role="group" aria-label="Объём задачи"><button data-n="50000000" aria-pressed="false">5·10⁷</button><button data-n="100000000" aria-pressed="true">10⁸</button><button data-n="200000000" aria-pressed="false">2·10⁸</button></span>
+        <span class="seg" role="group" aria-label="Объём задачи"><button data-n="200000000" aria-pressed="false">2·10⁸</button><button data-n="500000000" aria-pressed="true">5·10⁸</button><button data-n="1000000000" aria-pressed="false">10⁹</button></span>
         <span class="status" id="status">Потоков будет проверено: до <span id="pmax">—</span></span>
       </div>
 
@@ -728,7 +728,7 @@ function drawFreq(anim){
   [1970,1980,1990,2000,2010,2020].forEach(y=>add(el('text',{x:X(y),y:H-B+18,'text-anchor':'middle'},String(y))));
   add(el('line',{class:'axis',x1:L,x2:W-R,y1:H-B,y2:H-B}));
   A(add(el('rect',{x:X(2004),y:T,width:W-R-X(2004),height:H-T-B,fill:css('--blue-3'),'fill-opacity':.6})),'grow-x',1.25);
-  A(add(el('text',{x:X(2004)+8,y:T+14,style:'fill:'+css('--blue-ink')},'стена частоты')),'fadein',1.8);
+  A(add(el('text',{x:X(2004)+8,y:H-B-10,style:'fill:'+css('--blue-ink')},'стена частоты')),'fadein',1.8);
   // правая шкала: ядра
   [1,4,16,64].forEach(c=>A(add(el('text',{x:W-R+6,y:Yc(c)+4,style:'fill:'+blue},String(c))),'fadein',2.1));
   A(add(el('text',{x:W-R+6,y:T-6,style:'fill:'+blue},'ядер')),'fadein',2.1);
@@ -742,7 +742,7 @@ function drawFreq(anim){
   const cp=add(el('path',{d:cores.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Yc(p[1]).toFixed(1)).join(' '),fill:'none',stroke:blue,'stroke-width':2.4,'stroke-linejoin':'round'}));
   if(anim)A(cp,'draw',2.1,{'--len':cp.getTotalLength()+'px','--dur':'2s'});
   cores.slice(2).forEach((p,i)=>A(add(el('circle',{cx:X(p[0]),cy:Yc(p[1]),r:3,fill:blue})),'fadein',3.2+i*.12));
-  A(add(el('text',{x:X(1974),y:Yc(1)-8,style:'fill:'+blue},'число ядер')),'fadein',2.2);
+  A(add(el('text',{x:X(1986),y:Yc(1)-8,style:'fill:'+blue},'число ядер')),'fadein',2.2);
   A(add(el('text',{x:X(2023)-8,y:Yc(24)+18,'text-anchor':'end',style:'fill:'+blue},'24 ядра')),'fadein',4);
 }
 drawFreq(!reduce);
@@ -865,7 +865,7 @@ drawG();
 /* ---------- 1.5: эксперимент ---------- */
 const pList=(()=>{const l=[];for(let p=1;p<=HC*2;p*=2)l.push(p);if(l[l.length-1]!==HC*2&&HC*2<=64)l.push(HC*2);return l.filter(p=>p<=64);})();
 $('#pmax').textContent=pList[pList.length-1]+' (ядер '+HC+')';
-let N=1e8;
+let N=5e8;
 const nBtns=$$('[data-n]');
 nBtns.forEach(b=>b.onclick=()=>{N=+b.dataset.n;nBtns.forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));});
 
@@ -879,7 +879,7 @@ drawLive(false);
 redrawers.push(()=>drawLive(false));
 
 // воркер сообщает прогресс каждые ~2,5 % своего диапазона
-const workerSrc=`self.onmessage=e=>{const {from,to,h}=e.data;const n=to-from,step=Math.max(1,Math.ceil(n/40));let s=0;for(let a=from;a<to;a+=step){const b=Math.min(to,a+step);for(let i=a;i<b;i++){const x=(i+0.5)*h;s+=4/(1+x*x);}self.postMessage({s,frac:(b-from)/n,done:b>=to});}};`;
+const workerSrc=`self.onmessage=e=>{if(e.data==='ping'){self.postMessage('ready');return;}const {from,to,h}=e.data;const n=to-from,step=Math.max(1,Math.ceil(n/40));let s=0;for(let a=from;a<to;a+=step){const b=Math.min(to,a+step);for(let i=a;i<b;i++){const x=(i+0.5)*h;s+=4/(1+x*x);}self.postMessage({s,frac:(b-from)/n,done:b>=to});}};`;
 const workerURL=URL.createObjectURL(new Blob([workerSrc],{type:'application/javascript'}));
 
 const lanesBox=$('#lanes'),rPi=$('#rPi'),rTime=$('#rTime'),rStage=$('#rStage'),recap=$('#recap');
@@ -913,16 +913,17 @@ const vis={
   },
   stop(p,part,frac,h,t){cancelAnimationFrame(visRaf);vis.paint(p,part,frac,h);rTime.textContent=fmt(t/1000,3)+' с';}
 };
-function runOnce(p){
+// воркеры запускаются заранее, как пул потоков в Java: в замер попадает только счёт
+async function runOnce(p){
+  const ws=await Promise.all(Array.from({length:p},()=>new Promise(ok=>{const w=new Worker(workerURL);w.onmessage=()=>ok(w);w.postMessage('ping');})));
   return new Promise(res=>{
-    const h=1/N,ws=[],part=new Float64Array(p),frac=new Float64Array(p);let done=0;
+    const h=1/N,part=new Float64Array(p),frac=new Float64Array(p);let done=0;
     const t0=performance.now();vis.start(p,part,frac,h,t0);
-    for(let k=0;k<p;k++){
-      const w=new Worker(workerURL);ws.push(w);
+    ws.forEach((w,k)=>{
       w.onmessage=e=>{part[k]=e.data.s;frac[k]=e.data.frac;
         if(e.data.done&&++done===p){const t=performance.now()-t0;ws.forEach(x=>x.terminate());vis.stop(p,part,frac,h,t);res({t,pi:part.reduce((a,b)=>a+b,0)*h});}};
       w.postMessage({from:Math.floor(N*k/p),to:Math.floor(N*(k+1)/p),h});
-    }
+    });
   });
 }
 function addRecap(r,t1){
