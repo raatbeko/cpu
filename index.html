@@ -644,10 +644,13 @@ if(mq.addEventListener)mq.addEventListener('change',()=>{if(!root.dataset.theme)
 const prog=$('#progress');let ticking=false;
 const onScroll=()=>{const h=root.scrollHeight-innerHeight;prog.style.transform=`scaleX(${h>0?Math.min(1,scrollY/h):0})`;ticking=false;};
 addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll);}},{passive:true});onScroll();
-const navLinks=$$('nav a');
+const nav=$('nav'),navLinks=$$('nav a');
+// на узком экране меню прокручивается по горизонтали; двигаем только его, не страницу
+const revealLink=a=>{if(nav.scrollWidth<=nav.clientWidth)return;const l=a.offsetLeft-nav.offsetLeft,r=l+a.offsetWidth;
+  if(l<nav.scrollLeft)nav.scrollTo({left:l-8,behavior:'smooth'});else if(r>nav.scrollLeft+nav.clientWidth)nav.scrollTo({left:r-nav.clientWidth+8,behavior:'smooth'});};
 if(hasIO){
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;
-    navLinks.forEach(a=>{if(a.hash==='#'+e.target.id){a.setAttribute('aria-current','true');a.scrollIntoView({block:'nearest',inline:'nearest'});}else a.removeAttribute('aria-current');});
+    navLinks.forEach(a=>{if(a.hash==='#'+e.target.id){a.setAttribute('aria-current','true');revealLink(a);}else a.removeAttribute('aria-current');});
   }),{rootMargin:'-45% 0px -50% 0px'});
   $$('section.part, section.hero').forEach(s=>io.observe(s));
 }
