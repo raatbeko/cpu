@@ -181,6 +181,20 @@ button.primary.busy::after{content:'';position:absolute;inset:0;background:linea
 .barlabel{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-3);margin-top:6px;font-family:var(--mono)}
 @media (prefers-reduced-motion:reduce){.bar>div{transition:none}}
 
+/* kitchen */
+.kline{display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:center;font-family:var(--mono);font-size:13px;color:var(--ink-3)}
+.kline+.kline{margin-top:10px}
+.kbar{height:40px}
+.kbar .veg{background:var(--blue-3);color:var(--blue-ink)}
+.kbar .soup{background:var(--warm-3);color:var(--ink-2)}
+.cooks{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px;min-height:22px}
+.cooks i{width:22px;height:22px;border-radius:50% 50% 4px 4px;background:var(--blue);transition:background-color .4s,opacity .4s;position:relative}
+.cooks i::before{content:'';position:absolute;left:5px;right:5px;top:4px;height:6px;border-radius:50%;background:var(--paper)}
+.cooks i.idle{background:var(--rule-2);opacity:.7}
+table.map td:first-child{color:var(--ink-2)}
+table.map td:nth-child(2){font-family:var(--mono);font-size:14px}
+@media (max-width:600px){.kline{grid-template-columns:1fr}.kline+.kline{margin-top:14px}}
+
 /* core grid */
 .coresfig canvas{display:block;width:100%;max-width:340px;aspect-ratio:1;margin-inline:auto}
 
@@ -295,7 +309,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
 <header class="top"><div class="wrap">
   <div class="brand">Параллельные вычисления · Раздел 1</div>
   <nav aria-label="Разделы">
-    <a href="#why">Мотивация</a><a href="#flynn">Флинн</a><a href="#amdahl">Амдал</a><a href="#gustafson">Густафсон</a><a href="#live">Эксперимент</a><a href="#java">Java</a>
+    <a href="#simple">На пальцах</a><a href="#why">Мотивация</a><a href="#flynn">Флинн</a><a href="#amdahl">Амдал</a><a href="#gustafson">Густафсон</a><a href="#live">Эксперимент</a><a href="#java">Java</a>
   </nav>
   <button class="themebtn" id="themeBtn" type="button" aria-label="Сменить тему">
     <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -318,6 +332,57 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     <svg class="chart" id="freqChart" viewBox="0 0 460 300" role="img" aria-label="Тактовая частота процессоров по годам: рост до 2004 года, затем плато; число ядер после 2004 года быстро растёт"></svg>
     <figcaption><b>Стена частоты.</b> Чёрным — максимальная тактовая частота серийных процессоров Intel и AMD (левая шкала, логарифмическая). После 2004 года рост остановился на 3–5 ГГц. Синим — максимальное число ядер в настольных процессорах (правая шкала): транзисторы ушли туда.</figcaption>
   </figure>
+</div></section>
+
+<section class="part" id="simple"><div class="wrap">
+  <div class="pnum">Перед началом<span>1.0</span></div>
+  <div class="body">
+    <h2>На пальцах: кухня вместо формул</h2>
+    <div class="prose">
+      <p><b>Частота.</b> Представьте одного повара. Двадцать лет подряд он каждый год начинал двигаться быстрее, и любое блюдо готовилось быстрее само собой. С 2004 года быстрее он не может: перегреется. Зато поваров на кухне стало 24. Теперь, чтобы ужин был готов раньше, работу надо между ними <i>делить</i>.</p>
+      <p><b>Закон Амдала.</b> Готовим ужин: нарезать овощи (30 минут) и сварить суп (30 минут). Овощи режут хоть десять поваров, каждому по кусочку, и вместе они управятся за 3 минуты. А суп варится 30 минут, сколько поваров вокруг кастрюли ни стой. Один повар готовит ужин 60 минут, десять — 33. Не в десять раз быстрее, а меньше чем в два. Суп — это та часть работы, которую нельзя разделить. Подвигайте ползунок и посмотрите, сколько поваров стоят без дела.</p>
+    </div>
+    <div class="full">
+      <div class="kitchen">
+        <div class="controls">
+          <div class="ctl"><label for="cooks">Поваров на кухне <output id="cooksOut">4</output></label><input type="range" id="cooks" min="1" max="32" value="4" step="1"></div>
+          <div class="ctl">
+            <label>Задача</label>
+            <div class="seg" role="group" aria-label="Что нужно кухне"><button id="kSame" aria-pressed="true">Тот же ужин быстрее</button><button id="kMore" aria-pressed="false">Больше гостей за тот же час</button></div>
+          </div>
+        </div>
+        <div class="kline"><span>1 повар</span><div class="bar kbar"><div class="veg" style="width:50%">овощи 30 мин</div><div class="soup" style="width:50%">суп 30 мин</div><div class="free"></div></div></div>
+        <div class="kline" id="kline2"><span>4 повара</span><div class="bar kbar"><div class="veg" id="kVeg">овощи</div><div class="soup" id="kSoup">суп 30 мин</div><div class="free"></div></div></div>
+        <div class="cooks" id="cooksRow" aria-hidden="true"></div>
+        <div class="stats">
+          <div class="stat"><div class="k" id="kResK">Ужин готов через</div><div class="v" id="kRes">37,5 <small>мин</small></div></div>
+          <div class="stat"><div class="k">Быстрее, чем один повар</div><div class="v" id="kS">1,6×</div></div>
+          <div class="stat"><div class="k">Поваров без дела</div><div class="v" id="kIdle">2,4 <small>из 4</small></div></div>
+        </div>
+        <p class="note" id="kNote"></p>
+      </div>
+    </div>
+    <div class="prose" style="margin-top:36px">
+      <p><b>Закон Густафсона.</b> А если задача не «этот ужин быстрее», а «накормить больше гостей за тот же час»? Десять поваров нарежут в десять раз больше овощей, пока варится тот же суп. Вот тут они окупаются почти полностью. Переключите режим выше: время не меняется, а гостей становится всё больше.</p>
+      <p><b>Потоков больше, чем ядер.</b> Десять поваров на кухне, где всего две доски для нарезки. Восемь стоят и ждут, да ещё мешают друг другу пройти. Так ведёт себя программа, которая запустила больше потоков, чем у процессора ядер: быстрее не становится, а иногда становится медленнее.</p>
+      <p><b>Эксперимент.</b> Расчётам верить нельзя, нужен секундомер. Если десять поваров не дали ускорения, диагнозов два: либо суп слишком долгий (большая неделимая часть), либо повара толкаются (накладные расходы). Лечатся они по-разному, и параграф 1.5 показывает, как их различить.</p>
+    </div>
+    <div class="full">
+      <h3 style="font-family:var(--sans);font-size:17px;font-weight:600;margin-bottom:12px">Где это в бэкенде сегодня</h3>
+      <div class="tablewrap"><table class="map">
+        <thead><tr><th>На кухне</th><th>В теории</th><th>В веб-сервисе</th></tr></thead>
+        <tbody>
+          <tr><td>Повара</td><td>Ядра, потоки p</td><td>Пул потоков Tomcat, ForkJoinPool, консьюмеры Kafka, поды в Kubernetes</td></tr>
+          <tr><td>Суп, который варится 30 минут</td><td>Последовательная доля f</td><td>Один <span class="mono">synchronized</span>, одна база под блокировкой, одна партиция Kafka, цепочка вызовов A → B → C</td></tr>
+          <tr><td>Десять поваров, а ужин всего вдвое быстрее</td><td>Потолок Амдала 1/f</td><td>«Подняли 20 подов, а RPS вырос в 3 раза». Все ждут одну базу</td></tr>
+          <tr><td>Больше гостей за тот же час</td><td>Густафсон</td><td>Горизонтальное масштабирование: не быстрее один запрос, а больше запросов в секунду</td></tr>
+          <tr><td>Поваров больше, чем досок</td><td>Потоков больше, чем ядер</td><td>200 потоков на 4 ядрах: CPU-задачи мешают друг другу; задачи, которые ждут сеть, — нормально</td></tr>
+          <tr><td>Повара толкаются</td><td>Накладные расходы, Карп–Флэтт</td><td>Переключение контекста, борьба за lock, GC, сериализация</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note" style="margin-top:24px"><b>Правило для микросервисов.</b> Самый медленный неделимый участок задаёт потолок всей системы. Пока он есть, добавлять инстансы почти бесполезно: сначала убирают «суп», потом зовут поваров.</p>
+    </div>
+  </div>
 </div></section>
 
 <section class="part" id="why"><div class="wrap">
@@ -622,9 +687,9 @@ function tween(dur,fn,done){
   const st=now=>{const k=Math.min(1,(now-t0)/dur);fn(ease(k));if(k<1)id=requestAnimationFrame(st);else done&&done();};
   id=requestAnimationFrame(st);return ()=>cancelAnimationFrame(id);
 }
-function tweenNum(node,to,f,dur=320){
+function tweenNum(node,to,f,dur=320,html=false){
   const from=node._cur??to;node._stop&&node._stop();
-  node._stop=tween(from===to?0:dur,e=>{node._cur=from+(to-from)*e;node.textContent=f(node._cur);});
+  node._stop=tween(from===to?0:dur,e=>{node._cur=from+(to-from)*e;if(html)node.innerHTML=f(node._cur);else node.textContent=f(node._cur);});
 }
 function onceVisible(node,fn,threshold=.3){
   if(!hasIO){fn();return;}
@@ -755,6 +820,45 @@ $('#hcores').textContent=HC;
 const corerow=$('#corerow');
 for(let i=0;i<Math.min(HC,64);i++){const c=document.createElement('i');c.style.setProperty('--i',i);corerow.appendChild(c);}
 setTimeout(()=>corerow.classList.add('on'),reduce?0:900);
+
+/* ---------- 1.0: кухня ---------- */
+let kMode='same';
+const cooksRow=$('#cooksRow');
+function drawKitchen(){
+  const k=+$('#cooks').value,VEG=30,SOUP=30,T1=VEG+SOUP;
+  $('#cooksOut').textContent=k;
+  const who=`${k} ${plural(k,'повар','повара','поваров')}`;
+  $('#kline2 > span').textContent=who;
+  const veg=$('#kVeg'),soup=$('#kSoup');
+  let idle;
+  if(kMode==='same'){
+    const tv=VEG/k,t=tv+SOUP,S=T1/t;idle=k-S;
+    veg.style.width=(tv/T1*100)+'%';veg.textContent=tv/T1>0.09?`овощи ${fmt(tv,tv<10?1:0)} мин`:'';
+    soup.style.width=(SOUP/T1*100)+'%';soup.textContent='суп 30 мин';
+    $('#kResK').textContent='Ужин готов через';
+    tweenNum($('#kRes'),t,v=>fmt(v,1)+' <small>мин</small>',320,true);
+    tweenNum($('#kS'),S,v=>fmt(v,1)+'×');
+    $('#kIdle').innerHTML=`${fmt(idle,1)} <small>из ${k}</small>`;
+    $('#kNote').innerHTML=k===1?'<b>Один повар:</b> 60 минут, делить не с кем.':`<b>${who}:</b> овощи готовы за ${fmt(VEG/k,1)} мин, но суп всё равно варится 30. Ужин через ${fmt(t,1)} мин, это всего ${fmt(S,1)}× быстрее. Хоть тысяча поваров — быстрее 30 минут не будет: это и есть потолок Амдала.`;
+  }else{
+    const guests=k,S=(VEG*k+SOUP)/T1;idle=0;
+    veg.style.width=(VEG/T1*100)+'%';veg.textContent=`овощи на ${guests}× гостей, 30 мин`;
+    soup.style.width=(SOUP/T1*100)+'%';soup.textContent='суп 30 мин';
+    $('#kResK').textContent='Гостей накормлено';
+    tweenNum($('#kRes'),guests,v=>Math.round(v)+'×',320,true);
+    tweenNum($('#kS'),S,v=>fmt(v,1)+'×');
+    $('#kIdle').innerHTML=`0 <small>из ${k}</small>`;
+    $('#kNote').innerHTML=k===1?'<b>Один повар:</b> за час накормит одну компанию.':`<b>${who}:</b> за тот же час нарезали в ${k} раз больше овощей, суп тот же. Одному повару на столько гостей понадобилось бы ${fmt((VEG*k+SOUP)/60,1)} часа, значит выигрыш ${fmt(S,1)}×. Потолка нет: это закон Густафсона.`;
+  }
+  const idleN=Math.round(idle);
+  while(cooksRow.children.length<k)cooksRow.appendChild(document.createElement('i'));
+  while(cooksRow.children.length>k)cooksRow.lastChild.remove();
+  [...cooksRow.children].forEach((c,i)=>c.classList.toggle('idle',i>=k-idleN));
+}
+$('#cooks').addEventListener('input',drawKitchen);
+$('#kSame').onclick=()=>{kMode='same';$('#kSame').setAttribute('aria-pressed','true');$('#kMore').setAttribute('aria-pressed','false');drawKitchen();};
+$('#kMore').onclick=()=>{kMode='more';$('#kMore').setAttribute('aria-pressed','true');$('#kSame').setAttribute('aria-pressed','false');drawKitchen();};
+drawKitchen();
 
 /* ---------- 1.1: счётчики ---------- */
 const counters=$$('#why .count');
